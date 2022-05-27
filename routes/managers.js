@@ -17,23 +17,27 @@ router.post("/register", async (req, res) => {
     const validator = Joi.object({
         manager_name: Joi.string().required(),
         email: Joi.string().email().required(),
-        password: Joi.string().required()
+        password: Joi.string().required(),
+        expertise: Joi.array()
     })
 
     const validationResult = validator.validate(data)
     if (!validationResult.error) {
-        const { manager_name, email, password } = req.body
+        const { manager_name, email, password, expertise } = data
         const salt = await bcrypt.genSalt(parseInt(process.env.ROUNDS));
         const hashPassowrd = await bcrypt.hash(password, salt)
         try {
-            await Manager.create({
+            let manager = await Manager.create({
                 manager_name: manager_name,
                 email: email,
-                password: hashPassowrd
+                password: hashPassowrd,
+                expertise: expertise
             })
+
             res.json({
                 status: "success",
-                message: "Manager created"
+                message: "Manager created",
+                data: manager
             })
         } catch (e) {
             console.error(e)
@@ -95,6 +99,45 @@ router.post("/login", async (req, res) => {
             status: "success",
             token
         })
+    } else {
+        res.status(500).json({
+            status: "error",
+            message: "validation error"
+        })
+    }
+})
+
+
+router.post("/add_expertise", async (req, res) => {
+    const data = req.body
+    const validator = Joi.object({
+        email: Joi.string().email().required(),
+        expertise: Joi.array()
+    })
+
+    const validationResult = validator.validate(data)
+    if (!validationResult.error) {
+        const { email, expertise } = data
+        try {
+            let manager = await Manager.findOne({ email: email })
+            expertise.forEach(e => {
+                await Manager.updateOne({
+                    _id: manager._id
+                }, {
+                    $push: { expertise: e }
+                })
+            })
+            res.json({
+                status: "ok",
+                message: "expertise updated"
+            })
+        } catch (e) {
+            res.status(500).json({
+                status: "error",
+                message: "Could not update expertise"
+            })
+        }
+
     } else {
         res.status(500).json({
             status: "error",
