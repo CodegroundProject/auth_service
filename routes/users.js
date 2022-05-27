@@ -7,11 +7,34 @@ const User = require("../models/user")
 
 const { authorize, roles } = require("../middlewares/authorize")
 
-/* GET users listing. */
-router.get('/', function (req, res, next) {
-  res.send('respond with a resource');
+/**
+ * @swagger
+ *  /users:
+ *    get:
+ *      description: Get all users
+ *      responses:
+ *        200:
+ *          description: Success
+ */
+router.get('/', async (req, res, next) => {
+  res.json({
+    users: await User.find({})
+  })
 });
 
+/**
+ * @swagger
+ * /users/regiser:
+ *  post:
+ *    desription: registers a new user to codeground
+ *    reponses:
+ *      200:
+ *        description: User created
+ *      401:
+ *        description: validation error
+ *      500:
+ *        description: Couldn't create the user
+ */
 router.post("/register", async (req, res) => {
   const data = req.body
   const validator = Joi.object({
@@ -43,13 +66,27 @@ router.post("/register", async (req, res) => {
       })
     }
   } else {
-    res.status(500).json({
+    res.status(400).json({
       status: "error",
       message: "validation error"
     })
   }
 })
 
+
+/**
+ * @swagger
+ * /users/regiser:
+ *  post:
+ *    desription: Login to codeground
+ *    reponses:
+ *      200:
+ *        description: success
+ *      404:
+ *        description: No user of username was found
+ *      401:
+ *        description: Password is incorrect
+ */
 
 router.post("/login", async (req, res) => {
   const data = req.body
@@ -63,7 +100,7 @@ router.post("/login", async (req, res) => {
     const { username, password } = req.body
     const user = await User.findOne({ username: username }).exec()
     if (!user) {
-      return res.status(401).json({
+      return res.status(404).json({
         status: "error",
         message: `No user of username ${username} was found`
       })
@@ -96,7 +133,7 @@ router.post("/login", async (req, res) => {
       token
     })
   } else {
-    res.status(500).json({
+    res.status(401).json({
       status: "error",
       message: "validation error"
     })

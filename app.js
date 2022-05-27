@@ -3,7 +3,9 @@ var express = require('express');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require("mongoose")
-const dotenv = require("dotenv")
+const dotenv = require("dotenv");
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUI = require("swagger-ui-express");
 const { startHeartBeating } = require("./discovery/discovery")
 
 var indexRouter = require('./routes/index');
@@ -14,7 +16,22 @@ var managersRouter = require('./routes/managers');
 var app = express();
 dotenv.config()
 
-mongoose.connect("mongodb+srv://mohammed:mohammed@cluster0.04vk7.mongodb.net/codeground?retryWrites=true&w=majority", {
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Codeground authentication service API',
+      version: '1.0.0',
+    },
+  },
+  apis: ['./routes/*.js'], // files containing annotations as above
+};
+
+const swaggerDocs = swaggerJsDoc(options);
+
+app.use("/docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs))
+
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true
 }).then(() => {
   console.log("Connected to db")

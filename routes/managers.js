@@ -120,7 +120,7 @@ router.post("/add_expertise", async (req, res) => {
         const { email, expertise } = data
         try {
             let manager = await Manager.findOne({ email: email })
-            expertise.forEach(e => {
+            expertise.forEach(async (e) => {
                 await Manager.updateOne({
                     _id: manager._id
                 }, {
