@@ -76,7 +76,7 @@ router.post("/register", async (req, res) => {
 
 /**
  * @swagger
- * /users/regiser:
+ * /users/login:
  *  post:
  *    desription: Login to codeground
  *    reponses:
